@@ -1,0 +1,53 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".Generate.cs" #>
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+namespace Fx
+{
+	public interface IDiscriminatedUnion 
+	{
+		object GetObject();
+		Type GetType(int case_);
+		int GetCase(Type t);
+	}
+<# var className = "DiscriminatedUnion";#>
+<# for(int i = 2; i < 10; i++) { #>
+<# var typeStr = string.Join(",", Enumerable.Range(1, i).Select(x => "T" + x)); #>
+<# var typeName = className + "<" + typeStr + ">"; #>
+
+	public sealed class <#= typeName #> : IDiscriminatedUnion
+<#for(int k=1; k<=i; k++){ #>
+	where T<#=k#> : class
+<# } #>
+	{
+		readonly static Dictionary<Type, ClassCase> typesCache = new Dictionary<Type, ClassCase>();
+		enum ClassCase {<#= typeStr #>}
+		readonly ClassCase classCase;
+		static <#= className #>()
+		{
+<#for(int k=1; k<=i; k++){ #>
+			typesCache[typeof(T<#=k#>)] = ClassCase.T<#=k#>;
+<# } #>			
+		}
+
+		internal readonly object Val;
+<#for(int k=1; k<=i; k++){ #>
+		public <#= className #>(T<#=k#> t){ Val = t; classCase = ClassCase.T<#=k#>;}
+<# } #>			
+<#for(int k=1; k<=i; k++){ #>
+		public static implicit operator <#= typeName #>(T<#=k#> t){ return new <#= typeName #>(t);}
+<# } #>	
+		public object GetObject() { return Val; }
+		public int GetCase(Type t){ return (int)typesCache[t];}
+		public Type GetType(int case_){ return typesCache.First(x => (int)x.Value == case_).Key;}
+
+	}
+<# } #>
+
+}
