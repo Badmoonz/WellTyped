@@ -56,8 +56,8 @@ module Parse =
          |>> (function | (name, Some params') -> GenericTypeDef(name, params') | (name, _) -> BasicTypeDef name)
 
     let parseField  : Parser<FieldDef, _> = parseFieldName .>>. (pchar' ':' >>. parseType' <?> "type not defined")
-    let parseRecordBody  =  sepBy1 (between ws ws'  parseField) (pchar ';' ) 
-    let parseRecord = ws >>. str "type" >>. ws' >>. parseTypedef .>> pchar' '=' .>>. between (pchar '{') (pchar '}') parseRecordBody  .>> ws
+    let parseRecordBody  =  sepEndBy1  (attempt(between ws' ws'  parseField)) (pchar ';' <|> pchar '\n') 
+    let parseRecord = ws >>. str "type" >>. ws' >>. parseTypedef .>> pchar' '=' .>>. between (pchar '{' .>>. ws) (ws .>>. pchar '}') parseRecordBody  .>> ws
     let parseCaseBody  =  sepBy1 (between ws' ws'  parseField) (pchar '*' ) 
     let parseDUCase = ws >>. (pchar '|') >>. ws' >>. parseFieldName .>> ws' .>>. opt ((str "of") >>. parseCaseBody) 
     let parseDU =  ws >>. str "type" >>. ws' >>. parseTypedef .>> pchar' '=' .>>. many1 parseDUCase .>> ws

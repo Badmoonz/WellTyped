@@ -56,12 +56,15 @@ module DiscriminatedUnion =
                             fields 
                             |> List.map (fun (fname, ftype) -> { Name =fname ; Type = ftype})
                             |> List.toArray
-                        Class(name', fields')
-                    | None -> Singleton name'
+                        Class("_" + name', fields')
+                    | None -> Singleton ("_" + name')
                     )
                 |> List.toArray
             { Type = type' ; Cases = cases' }
             )
+
+
+
 
     let generateCaseClass unionClassName tag caseClass =
         let singletonClassDef className =  
@@ -74,7 +77,7 @@ module DiscriminatedUnion =
                 methodBuilder ctorDecl ctorBody
 
             let propsDef = 
-                String.Join(Environment.NewLine,props |> Array.map(fun s -> String.Format("public {0} {1} {{get; private set;}}", s.TypeName , s.Name)))
+                String.Join(Environment.NewLine,props |> Array.map(fun s -> String.Format("public {0} {1} {{get; private set;}}", s.TypeName , firstLetterUpperCase(s.Name))))
 
             let strBuilder = new StringBuilder()
             strBuilder.AppendLine(String.Format("public sealed class {0} : {1}", className, unionClassName)) |> ignore
@@ -89,15 +92,25 @@ module DiscriminatedUnion =
         | Singleton name -> singletonClassDef name
         | Class (name,props) -> classDef name props
 
+    let skipUnderscore (s : string) = 
+        s.TrimStart([|'_'|])
+
+    let generateCaseClassCheck tag caseClass =
+        let checkProp className =  
+            String.Format("public bool Is{0} {{ get {{ return Tag == {1}; }} }}", skipUnderscore className, tag)
+        match caseClass with
+        | Singleton name -> checkProp name
+        | Class (name,_) -> checkProp name
+
     let generateCaseStaticCtors unionClassName = function
         | Singleton className -> 
             let uniqueFildName = String.Format("_unique_{0}", className)
-            let l1 = String.Format("private static readonly {0} {1} = new {2}();", unionClassName, uniqueFildName, className)
-            let l2 =  String.Format("public static {0} {2}Instance {{ get {{ return {1}; }}}}", unionClassName, uniqueFildName, className)
+            let l1 = String.Format("private static readonly {0} {1} = new {2}();", unionClassName,  uniqueFildName, className)
+            let l2 =  String.Format("public static {0} {2} {{ get {{ return {1}; }}}}", unionClassName, uniqueFildName, skipUnderscore className)
             String.Join(Environment.NewLine, [|l1;l2|])
         | Class (className, props) -> 
             let args = String.Join(", " , props |> Array.map(fun s -> s.TypeName + " " + firstLetterLowerCase(s.Name)))
-            let methodDecl = String.Format("public static {0} New{1}({2})", unionClassName, className, args)
+            let methodDecl = String.Format("public static {0} {1}({2})", unionClassName, skipUnderscore className, args)
             let ctorParams = String.Join(", " , props |> Array.map(fun s -> firstLetterLowerCase(s.Name)))
             let methodBody = String.Format("return new {0}({1});", className, ctorParams)
             methodBuilder methodDecl methodBody
@@ -107,7 +120,7 @@ module DiscriminatedUnion =
       | Class (className, props) ->     
             let directVarName = sprintf "direct%d" tag
             let numVarname = sprintf "num%d" tag       
-            let hashRow (propName : string) =  String.Format("{0} = -1640531527 + ((({1}.{2} == null) ? 0 : {1}.{2}.GetHashCode()) + (({0} << 6) + ({0} >> 2)));",numVarname,directVarName, propName)
+            let hashRow (propName : string) =  String.Format("{0} = -1640531527 + ((({1}.{2} == null) ? 0 : {1}.{2}.GetHashCode()) + (({0} << 6) + ({0} >> 2)));",numVarname,directVarName,firstLetterUpperCase propName)
             let strBuilder = new StringBuilder()
             strBuilder.AppendLine(sprintf "int %s = %d;" numVarname tag) |> ignore
             strBuilder.AppendLine(sprintf "var %s = (%s)this;" directVarName className) |> ignore
@@ -124,7 +137,7 @@ module DiscriminatedUnion =
             let direct2VarName = sprintf "direct%d_2" tag
             let l1 = sprintf "var %s = (%s)this;" direct1VarName className
             let l2 = sprintf "var %s = (%s)%s;" direct2VarName className objVarName
-            let propsEqs =  props |> Array.map (fun f -> String.Format("StructuralComparisons.StructuralEqualityComparer.Equals({0}.{2}, {1}.{2})", direct1VarName,direct2VarName, f.Name))  
+            let propsEqs =  props |> Array.map (fun f -> String.Format("StructuralComparisons.StructuralEqualityComparer.Equals({0}.{2}, {1}.{2})", direct1VarName,direct2VarName, firstLetterUpperCase f.Name))  
             let eqString = String.Join(Environment.NewLine + String(' ',7) + "&& ", propsEqs)
             String.Join(Environment.NewLine, [|l1;l2; "return " + eqString + ";"|])
 
@@ -144,6 +157,8 @@ module DiscriminatedUnion =
 
         let caseClasses = 
             String.Join(Environment.NewLine, duCases|> Array.mapi (generateCaseClass className))
+        let caseClassChecks = 
+            String.Join(Environment.NewLine, duCases|> Array.mapi (generateCaseClassCheck ))    
         let caseClassStaticCtors = 
             String.Join(Environment.NewLine, duCases|> Array.map (generateCaseStaticCtors className))
 
@@ -256,6 +271,7 @@ module DiscriminatedUnion =
         strBuilder.AppendLine(addTabs ctorDef 1)|> ignore
         strBuilder.AppendLine(addTabs "public int Tag {get; private set;}" 1)|> ignore
         strBuilder.AppendLine(addTabs caseClasses 1)|> ignore
+        strBuilder.AppendLine(addTabs caseClassChecks 1)|> ignore
         strBuilder.AppendLine(addTabs ``int GetHashCode()`` 1) |> ignore
         strBuilder.AppendLine(addTabs ``bool Equals(Object obj)`` 1) |> ignore
         strBuilder.AppendLine(addTabs ``bool Equals(T obj)`` 1) |> ignore
