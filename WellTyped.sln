@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CodeGen", "CodeGen\CodeGen.fsproj", "{D70BD216-1191-43E1-8A1F-7FCAB8B168B4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "WellTyped.CodeGen", "CodeGen\WellTyped.CodeGen.fsproj", "{D70BD216-1191-43E1-8A1F-7FCAB8B168B4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{40CE4C69-29C3-4B7C-99E7-2C3B03296BEC}"
 EndProject
@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		RecordGenTemplate.tt = RecordGenTemplate.tt
 		RecordTypesGenerator.1.0.5.nupkg = RecordTypesGenerator.1.0.5.nupkg
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WellTyped.Prelude", "WellTyped.Prelude\WellTyped.Prelude.csproj", "{F79059BF-0BFD-4B64-9EF7-4FA86C372FCF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WellTyped.CodeGen.Test", "WellTyped.CodeGen.Test\WellTyped.CodeGen.Test.csproj", "{FD8CBBE3-139C-42E7-990C-D6BF951EEEF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +28,14 @@ Global
 		{D70BD216-1191-43E1-8A1F-7FCAB8B168B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D70BD216-1191-43E1-8A1F-7FCAB8B168B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D70BD216-1191-43E1-8A1F-7FCAB8B168B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F79059BF-0BFD-4B64-9EF7-4FA86C372FCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F79059BF-0BFD-4B64-9EF7-4FA86C372FCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F79059BF-0BFD-4B64-9EF7-4FA86C372FCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F79059BF-0BFD-4B64-9EF7-4FA86C372FCF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD8CBBE3-139C-42E7-990C-D6BF951EEEF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD8CBBE3-139C-42E7-990C-D6BF951EEEF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD8CBBE3-139C-42E7-990C-D6BF951EEEF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD8CBBE3-139C-42E7-990C-D6BF951EEEF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

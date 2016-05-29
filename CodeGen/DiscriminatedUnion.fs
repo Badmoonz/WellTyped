@@ -216,7 +216,7 @@ module DiscriminatedUnion =
             let methodDecl =  String.Format("public static bool operator ==({0} o1, {0} o2)", className) 
             let methodBody =            
                 let strBuilder = new StringBuilder()
-                strBuilder.AppendLine("return ((object)o1 != null) && o1.Equals(o2);") |> ignore
+                strBuilder.AppendLine("return (object)o1 == null ? (object)o2 == null :  o1.Equals(o2);") |> ignore
                 strBuilder.ToString();
             methodBuilder methodDecl methodBody
 

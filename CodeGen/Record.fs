@@ -68,7 +68,7 @@ module Record =
             let methodDecl =  String.Format("public static bool operator ==({0} o1, {0} o2)", className) 
             let methodBody =            
                 let strBuilder = new StringBuilder()
-                strBuilder.AppendLine("return ((object)o1 != null) && o1.Equals(o2);") |> ignore
+                strBuilder.AppendLine("return (object)o1 == null ? (object)o2 == null :  o1.Equals(o2);") |> ignore
                 strBuilder.ToString();
             methodBuilder methodDecl methodBody
 
@@ -122,6 +122,13 @@ module Record =
                 String.Join(" && ", Array.concat [|nullCheck; propsCompares|]) + ";"
             methodBuilder methodDecl methodBody
 
+         let withStatement = 
+            let methodArgs = String.Join(", " , fields |> Array.map(fun s -> System.String.Format("WellTyped.Prelude.OptionalParam<{0}> {1} = default(WellTyped.Prelude.OptionalParam<{0}>)", s.TypeName, firstLetterLowerCase(s.Name))))
+            let methodDecl = String.Format("public {0} With({1})", className, methodArgs)
+            let methodBody =
+                let insertArgs = String.Join(", " , fields |> Array.map(fun s -> System.String.Format("{0}.HasValue ? {0}.Value : this.{1} ", firstLetterLowerCase(s.Name), firstLetterUpperCase(s.Name))))
+                sprintf "return new %s(%s);" className insertArgs
+            methodBuilder methodDecl methodBody
 
          let strBuilder = new StringBuilder()
          strBuilder.AppendLine(String.Format("public sealed partial class {0} : IEquatable<{0}>", className)) |> ignore
@@ -141,8 +148,8 @@ module Record =
          strBuilder.AppendLine(addTabs ``==(T o1, T o2)`` 1)|> ignore
          strBuilder.AppendLine()|> ignore
          strBuilder.AppendLine(addTabs ``!=(T o1, T o2)`` 1)|> ignore
-         
-
+         strBuilder.AppendLine() |> ignore
+         strBuilder.AppendLine(addTabs withStatement 1) |> ignore
          strBuilder.AppendLine("}") |> ignore
          strBuilder.ToString()
 
